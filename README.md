@@ -1,63 +1,75 @@
-   # Event-Management-System
-This is an event management system developed using Spring Boot framework. This project is managing events such as creating events and updating event. These technologies have been implemented in this project.
+# Event-Management-System
 
-    1. Spring-security(JWT),
-    2. Redis, 
-    3. Flyway for the database migration,
-    4. Global Exception, 
-    5. jUnit with Jacoco (Java Code Coverage)
-    6. Swagger Explorer
+## Project Overview
 
-# There are the following steps for the setup of the project.
-    1. JDK 17 
-    2. Spring-boot 3.2.4
-    3. Redis server v=7.2.5 for Caching
-    4. Mysql server 8.3
-    
-# Create the database in Mysql server.
-  create database event_application
-  Set the databse configuration in the properties file. Like Username, Password, URL, etc..
- 
- # Start the Redis-server.
- ```sh
-sudo service redis-server start
-```
- # Start the event management system.
- ```sh
-mvn spring-boot:run
-```
+Event-Management-System is a comprehensive web application built with Spring Boot framework to manage various types of events efficiently. The system allows users to register, login, create, update, and manage events while providing robust security through JWT-based authentication. Flyway manages database migrations to ensure seamless schema updates.
 
-> Note: `We have put(Event-Managemnt-app.postman_collection.json) the collection of APIs. You can import the APIs collection into postman`
+This system is ideal for organizations or communities looking to streamline their event lifecycle management with a modern backend API-driven solution.
 
-#### 1. User registration API for the event.
+---
 
- ```sh
- curl --location 'http://localhost:8081/api/v1/auth/registration' \
---header 'Accept-Language: hi' \
---header 'Content-Type: application/json' \
---header 'Cookie: COOKIE_SUPPORT=true; GUEST_LANGUAGE_ID=en_US' \
---data-raw '{
-  "name": "Ashish Paghdar -1",
-  "password": "password123",
-  "gender": "Male",
-  "address": "Krupa Apartment, Vasna, Ahmedabad",
-  "email": "ashish1@example.com",
-  "mobile": "9726222908",
-  "eventsOfInterest": "Sports, Music, Technology"
-}'
-```
+## Key Features
 
-#### 2. User Login API for the User 
-```sh
-curl --location 'http://localhost:8081/api/v1/auth/login' \
---header 'Accept-Language: hi' \
---header 'Content-Type: application/json' \
---header 'Cookie: COOKIE_SUPPORT=true; GUEST_LANGUAGE_ID=en_US' \
---data-raw '{
-  "password": "password123",
-  "email": "ashish1@example.com",
-  "id" : "1",
-  "role" : "USER"
-}'
-```
-you will get the JWT token for the event app. 
+- **User Registration and Authentication** using Spring Security with JWT tokens.
+- **Role-based Access Control** (e.g., USER, ADMIN roles).
+- **Event Management**: Create, update, delete, and view events.
+- **Database Migration** handled by Flyway for version-controlled schema updates.
+- **Global Exception Handling** for consistent and clear error responses.
+- **Unit Testing** implemented with JUnit and coverage reporting via Jacoco.
+- **API Documentation and Testing** with Swagger UI.
+- **Internationalization Support** (example: Accept-Language header usage).
+
+---
+
+## Technologies Used
+
+| Technology                | Purpose                                      |
+|--------------------------|----------------------------------------------|
+| Spring Boot 3.2.4        | Application framework                         |
+| Spring Security (JWT)    | Secure authentication and authorization      |
+| Flyway                   | Database schema migration and version control|
+| MySQL 8.3                | Relational database                          |
+| JUnit + Jacoco           | Unit testing and code coverage               |
+| Swagger Explorer         | API documentation and testing                |
+| Maven                    | Build and dependency management              |
+
+---
+
+## System Architecture
+
+- **Controller Layer:** REST APIs that receive HTTP requests and return responses.
+- **Service Layer:** Business logic processing.
+- **Repository Layer:** Interacts with MySQL database.
+- **Security Layer:** JWT-based authentication and authorization.
+- **Exception Handling:** Centralized global exception handler for API errors.
+
+---
+
+## Prerequisites
+
+- Java Development Kit (JDK) 17
+- MySQL Server 8.3 (Ensure MySQL is installed and running)
+- Maven (for building and running the project)
+- IDE or code editor (e.g., IntelliJ IDEA, VS Code)
+
+---
+
+## API Documentation and Testing
+Swagger UI is available at:
+http://localhost:8081/swagger-ui/index.html
+
+---
+
+## Future Enhancements
+Add event reminders/notifications via email or SMS.
+Implement an Admin panel for managing users and events.
+Integrate payment gateway for paid event registration.
+Add frontend client (React/Angular) to consume APIs.
+Enable multi-language support.
+Extend role management (Admin, Organizer, User, etc.).
+Add detailed event analytics and reporting.
+
+--- 
+
+Tharun C R
+
