@@ -6,22 +6,20 @@ import com.event.entity.Role;
 import com.event.entity.User;
 import com.event.exception.ResourceNotFoundException;
 import com.event.repository.EventRepository;
-import com.event.repository.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.MessageSource;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -31,163 +29,107 @@ public class EventServiceTest {
     @InjectMocks
     private EventService eventService;
 
-    @InjectMocks
-    private UserServiceImpl userService;
-
     @Mock
     private EventRepository eventRepository;
 
-    @Mock
-    private UserRepository userRepository;
+    private User user;
+    private Event event;
 
-    @Mock
-    private MessageSource messageSource;
+    @BeforeEach
+    void setUp() {
+        // Common setup for user and event objects to reduce code duplication
+        user = new User(1L, "Test User", "password123", "Male", "123 Main St",
+                "test.user@example.com", "1234567890", LocalDate.now(),
+                LocalDate.now(), "Sports, Music", Role.USER);
+
+        event = new Event(1L, "Sample Event", "Conference", "This is a sample event.",
+                "123 Event St, Event City", LocalDate.now(), LocalDate.now(),
+                LocalDateTime.now(), LocalDateTime.now(), user);
+    }
 
     @Test
-    public void createEvent() {
-
-        User user = new User();
-        user.setId(1L);
-        user.setPassword("password123");
-        user.setUpdatedDate(LocalDate.now());
-        user.setCreationDate(LocalDate.now());
-        user.setEventsOfInterest("Sports, Music, Technology");
-        user.setRole(Role.USER);
-        user.setMobile("1234567890");
-        user.setGender("Male");
-        user.setEmail("crtharun1@gmail.com");
-        user.setName("Test event");
-        user.setAddress("Coimbatore");
-
-        Event event = new Event();
-        event.setId(1L);
-        event.setName("News Events");
-        event.setCategory("News, advertisement");
-        event.setDescription("This is new event.");
-        event.setLocation("RaceCourse, Coimbatore");
-        event.setCreationDate(LocalDate.now());
-        event.setUpdatedDate(LocalDate.now());
-        event.setEventStartDateAndTime(LocalDateTime.now());
-        event.setEventEndDateAndTime(LocalDateTime.now());
-        event.setUser(user);
-
+    public void createEvent_ShouldReturnSavedEvent() {
+        // Arrange
         EventDTO eventDTO = EventDTO.mapToEventDTO(event);
         when(eventRepository.save(any(Event.class))).thenReturn(event);
-        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
 
         // Act
-        Event createdEvent = eventService.createEvent(eventDTO, user, user.getId());
-        Optional<Event> optionalEvent = eventService.getEventById(createdEvent.getId());
-        Event savedEvent = optionalEvent.orElse(new Event());
+        Event createdEvent = eventService.createEvent(eventDTO, user);
 
         // Assert
-        assertEquals(createdEvent.getId(), savedEvent.getId());
+        assertNotNull(createdEvent);
+        assertEquals(event.getName(), createdEvent.getName());
+        verify(eventRepository, times(1)).save(any(Event.class));
     }
 
     @Test
-    public void invalidUser() {
-        EventDTO eventDTO = new EventDTO();
-        eventDTO.setId(1L);
-        eventDTO.setName("Event- s");
-        eventDTO.setCategory("News, advertisement");
-        eventDTO.setDescription("This is new event.");
-        eventDTO.setLocation("RaceCourse, Coimbatore");
-        eventDTO.setCreationDate(LocalDate.now());
-        eventDTO.setUpdatedDate(LocalDate.now());
-        eventDTO.setEventStartDateAndTime(LocalDateTime.now());
-        eventDTO.setEventEndDateAndTime(LocalDateTime.now());
+    public void getEventById_ShouldReturnEvent_WhenFound() {
+        // Arrange
+        given(eventRepository.findById(event.getId())).willReturn(Optional.of(event));
 
-        assertThrows(UsernameNotFoundException.class, () -> userService.findById(132L));
+        // Act
+        Optional<Event> foundEventOptional = eventService.getEventById(event.getId());
+
+        // Assert
+        assertTrue(foundEventOptional.isPresent());
+        assertEquals(event.getId(), foundEventOptional.get().getId());
+        verify(eventRepository).findById(event.getId());
     }
 
     @Test
-    public void getEventById() {
-        User user = new User(1L, "Ramesh C S", "password123", "Male", "20 Gotham city",
-                "csramesh@gmail.com", "1234567890", LocalDate.now(),
-                LocalDate.now(), "Sports, Music", Role.USER);
+    public void getEventById_ShouldThrowException_WhenNotFound() {
+        // Arrange
+        long nonExistentId = 99L;
+        when(eventRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
-        Event event = new Event(63L, "Sample Event1", "Conference", "This is a sample event.", "123 Event St, Event City",
-                LocalDate.now(), LocalDate.now(), LocalDateTime.now(), LocalDateTime.now(), user);
-
-        Optional<Event> optionalEvent = Optional.of(event);
-        given(eventRepository.findById(event.getId())).willReturn(optionalEvent);
-        Optional<Event> expectedEventOptional = eventService.getEventById(event.getId());
-        Event expectedEvent = expectedEventOptional.orElse(new Event());
-
-        assertEquals(expectedEvent.getId(), event.getId());
-        verify(eventRepository).findById(expectedEvent.getId());
+        // Act & Assert
+        assertThrows(ResourceNotFoundException.class, () -> eventService.getEventById(nonExistentId));
+        verify(eventRepository).findById(nonExistentId);
     }
 
     @Test
-    public void eventNotFound() {
-        assertThrows(ResourceNotFoundException.class, () -> eventService.getEventById(1565L));
-    }
+    public void updateEvent_ShouldUpdateAndReturnEvent() {
+        // Arrange
+        EventDTO eventDTO = EventDTO.mapToEventDTO(event);
+        eventDTO.setName("Updated Event Name");
+        eventDTO.setDescription("This is an updated description.");
 
-    @Test
-    public void updateEvent() {
-        User user = new User(1L, "John Doe", "password123", "Male", "123 Main St",
-                "john.doe@example.com", "1234567890", LocalDate.now(),
-                LocalDate.now(), "Sports, Music", Role.USER);
-
-        Event existingEvent = new Event(1L, "News Events", "News, advertisement", "This is new event.", "123 Event St, Event City",
-                LocalDate.now(), LocalDate.now(), LocalDateTime.now(), LocalDateTime.now(), user);
-
-        EventDTO eventDTO = EventDTO.mapToEventDTO(existingEvent);
-        eventDTO.setName("Updated- Event");
-        eventDTO.setDescription("This is description for testing event");
-
-        // Mocking the repository and message source
-        when(eventRepository.findByIdAndUser(existingEvent.getId(), user)).thenReturn(Optional.of(existingEvent));
+        when(eventRepository.findByIdAndUser(event.getId(), user)).thenReturn(Optional.of(event));
         when(eventRepository.save(any(Event.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // Call the method under test
-        Event updatedEvent = eventService.updateEvent(existingEvent.getId(), eventDTO, user, user.getId());
+        // Act
+        Event updatedEvent = eventService.updateEvent(event.getId(), eventDTO, user);
 
-        // Verify interactions
-        verify(eventRepository, times(1)).findByIdAndUser(eventDTO.getId(), user);
+        // Assert
+        assertNotNull(updatedEvent);
+        assertEquals("Updated Event Name", updatedEvent.getName());
+        assertEquals("This is an updated description.", updatedEvent.getDescription());
+        verify(eventRepository, times(1)).findByIdAndUser(event.getId(), user);
         verify(eventRepository, times(1)).save(any(Event.class));
-        verify(messageSource, times(0)).getMessage(eq("event.not.found.msg"), any(), isNull());
-
-        assertEquals(updatedEvent.getId(), existingEvent.getId());
     }
 
     @Test
-    public void deleteEvent() {
-        User user = new User(1L, "Tharun C R", "password123", "Male", "20 - Racecourse",
-                "crtharun1@gmail.com", "1234567890", LocalDate.of(2024, 5, 3),
-                LocalDate.of(2024, 5, 3), "Music, Sports", Role.USER);
-
-        Event event = new Event(14343L, "Sample Event1", "Conference", "This is a sample event.", "123 Event St, Event City",
-                LocalDate.now(), LocalDate.now(), LocalDateTime.now(), LocalDateTime.now(), user);
-
-        // Mock the behavior of eventRepository.findByIdAndUser
+    public void deleteEvent_ShouldCallRepositoryDelete() {
+        // Arrange
         when(eventRepository.findByIdAndUser(event.getId(), user)).thenReturn(Optional.of(event));
 
-        // Call the service method
-        eventService.deleteEvent(event.getId(), user, user.getId());
+        // Act
+        eventService.deleteEvent(event.getId(), user);
 
-        // Verify that the delete method was called on the repository
-        verify(eventRepository).delete(event);
+        // Assert
+        verify(eventRepository, times(1)).delete(event);
     }
 
     @Test
-    public void deleteEvent_EventNotFound() {
-        User user = new User(1L, "Tharun C R", "password123", "Male", "20 - Racecourse ",
-                "crtharun1@gmail.com", "1234567890", LocalDate.of(2024, 5, 3),
-                LocalDate.of(2024, 5, 3), "Music, Sports", Role.USER);
+    public void deleteEvent_ShouldThrowException_WhenNotFound() {
+        // Arrange
+        long nonExistentId = 99L;
+        when(eventRepository.findByIdAndUser(nonExistentId, user)).thenReturn(Optional.empty());
 
-        // Mock the behavior of eventRepository.findByIdAndUser to return empty Optional
-        when(eventRepository.findByIdAndUser(anyLong(), any(User.class))).thenReturn(Optional.empty());
+        // Act & Assert
+        assertThrows(ResourceNotFoundException.class, () -> eventService.deleteEvent(nonExistentId, user));
 
-        // Mock the behavior of messageSource
-        when(messageSource.getMessage(eq("event.not.found.msg"), any(), isNull()))
-                .thenReturn("Event not found with ID ");
-
-        // Call the service method and assert that a ResourceNotFoundException is thrown
-        assertThrows(ResourceNotFoundException.class, () ->
-                eventService.deleteEvent(1L, user, user.getId()));
-
-        // Verify that the delete method was not called on the repository
+        // Verify that the delete method was never called
         verify(eventRepository, never()).delete(any(Event.class));
     }
 }
