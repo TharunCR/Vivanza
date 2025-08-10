@@ -9,27 +9,23 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/users")
 public class UserController {
-    @Autowired
-    UserRepository userRepository;
 
     @Autowired
-    UserServiceImpl userService;
+    private UserRepository userRepository;
 
     @Autowired
-    private MessageSource messageSource;
+    private UserServiceImpl userService;
 
     @GetMapping
     public ResponseEntity<List<User>> getAllUser() {
@@ -37,46 +33,49 @@ public class UserController {
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
-
     @GetMapping("/{id}")
-    public ResponseEntity<?> getUserById(@PathVariable("id") Long userId, @RequestHeader(name = "Accept-Language", required = false) Locale locale) {
+    public ResponseEntity<?> getUserById(@PathVariable("id") Long userId) {
         try {
             log.info("Fetching user with ID {}", userId);
-            Optional<User> Optionaluser = userService.findById(userId, locale);
-            User user = Optionaluser.orElse(new User());
+            // Assuming the service method is updated to not require locale
+            Optional<User> optionalUser = userService.findById(userId);
+            User user = optionalUser.orElse(new User());
             return new ResponseEntity<>(user, HttpStatus.OK);
         } catch (ResourceNotFoundException ex) {
-            log.error("User with ID {} not found ", userId);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(messageSource.getMessage("user.not.found.msg", null, locale) + " " + userId);
+            log.error("User with ID {} not found", userId);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found with ID: " + userId);
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable("id") Long userId, @Valid @RequestBody UserDTO userDetails, @RequestHeader(name = "Accept-Language", required = false) Locale locale) {
+    public ResponseEntity<?> updateUser(@PathVariable("id") Long userId, @Valid @RequestBody UserDTO userDetails) {
         try {
-            String updatedUser = userService.updateUser(userId, userDetails, locale);
+            // Assuming the service method is updated to not require locale
+            String updatedUser = userService.updateUser(userId, userDetails);
             log.info("Updated user with ID {}", userId);
             return new ResponseEntity<>(updatedUser, HttpStatus.OK);
         } catch (ResourceNotFoundException ex) {
             log.error("User with ID {} not found for update", userId);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(messageSource.getMessage("user.not.found.msg", null, locale) + " " + userId);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found with ID: " + userId);
         } catch (BadRequestException ex) {
-            log.error("User email is already exist with another user " + userDetails.getEmail());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(messageSource.getMessage("user.email.exist.msg", null, locale) + userDetails.getEmail() + messageSource.getMessage("user.change.email.msg", null, locale));
+            log.error("User email '{}' already exists with another user", userDetails.getEmail());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Email '" + userDetails.getEmail() + "' is already in use. Please use a different email.");
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteUser(@PathVariable("id") Long userId, @RequestHeader(name = "Accept-Language", required = false) Locale locale) {
+    public ResponseEntity<String> deleteUser(@PathVariable("id") Long userId) {
         log.info("Deleting user with ID {}", userId);
         try {
-            userService.deleteUser(userId, locale);
+            // Assuming the service method is updated to not require locale
+            userService.deleteUser(userId);
             log.info("Deleted user with ID {}", userId);
-            return ResponseEntity.status(HttpStatus.OK).body(messageSource.getMessage("user.deleted.successfully.msg", null, locale) + " " + userId);
+            return ResponseEntity.status(HttpStatus.OK).body("User deleted successfully with ID: " + userId);
         } catch (ResourceNotFoundException ex) {
             log.error("User with ID {} not found for deletion", userId);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(messageSource.getMessage("user.not.access.delete.user.msg", null, locale) + "" + userId);
+                    .body("User not found or you do not have permission to delete it. ID: " + userId);
         }
     }
 }
