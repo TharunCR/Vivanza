@@ -5,13 +5,13 @@ import com.event.DTO.UserDTO;
 import com.event.service.AuthenticationService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.Locale;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -23,29 +23,25 @@ public class AuthenticationController {
     private AuthenticationService authenticationService;
 
     @PostMapping("/registration")
-    public ResponseEntity<Object> registration(@Valid @RequestBody UserDTO request,@RequestHeader(name="Accept-Language", required= false) Locale locale) {
-        log.info("Processing user registration {}", request);
+    public ResponseEntity<Object> registration(@Valid @RequestBody UserDTO request) {
+        log.info("Processing user registration for: {}", request.getEmail());
         try {
-            return ResponseEntity.ok(authenticationService.registration(request, locale));
+            // CORRECTED: The locale parameter is removed from the service call
+            return ResponseEntity.ok(authenticationService.registration(request));
         } catch (Exception e) {
-            log.error("Error processing user registration for request: {}. Error: {}", request, e.getMessage(), e);
+            log.error("Error processing user registration for request: {}. Error: {}", request.getEmail(), e.getMessage(), e);
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Object> login(@Valid @RequestBody SigninRequest request,
-                                        @RequestHeader(name="Accept-Language", required = false) String languageHeader) {
-        // Parse or default locale
-        Locale locale = Locale.ENGLISH;
-        if (languageHeader != null && !languageHeader.isBlank()) {
-            String[] parts = languageHeader.split(",")[0].split("-");
-            locale = parts.length == 2 ? new Locale(parts[0], parts[1]) : new Locale(parts[0]);
-        }
-
+    public ResponseEntity<Object> login(@Valid @RequestBody SigninRequest request) {
+        log.info("Processing login for: {}", request.getEmail());
         try {
-            return ResponseEntity.ok(authenticationService.login(request, locale));
+            // CORRECTED: The locale parameter is removed from the service call
+            return ResponseEntity.ok(authenticationService.login(request));
         } catch (Exception e) {
+            log.error("Error processing login for {}: {}", request.getEmail(), e.getMessage());
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
