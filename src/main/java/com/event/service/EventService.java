@@ -6,23 +6,18 @@ import com.event.entity.User;
 import com.event.exception.ResourceNotFoundException;
 import com.event.repository.EventRepository;
 import com.event.repository.UserRepository;
-import com.event.util.UserAuthenticationUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.*;
-import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 
 @Slf4j
 @Service
 @CacheConfig(cacheNames = "eventCache")
 public class EventService {
-    @Autowired
-    private MessageSource messageSource;
 
     @Autowired
     private EventRepository eventRepository;
@@ -42,9 +37,11 @@ public class EventService {
         return eventRepository.findAll(pageable);
     }*/
 
-    @Caching(evict = {@CacheEvict(cacheNames = "events", allEntries = true),
-            @CacheEvict(cacheNames = "eventCache", key = "'eventsByUser:' + #userId")})
-    public Event createEvent(EventDTO eventDTO, User user, Long userId) {
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "events", allEntries = true),
+            @CacheEvict(cacheNames = "eventCache", key = "'eventsByUser:' + #user.id")
+    })
+    public Event createEvent(EventDTO eventDTO, User user) {
         Event event = EventDTO.mapToEvent(eventDTO);
         event.setUser(user);
         doLongRunningTask();
@@ -52,26 +49,31 @@ public class EventService {
     }
 
     @Cacheable(cacheNames = "event", key = "#id", unless = "#result == null")
-    public Optional<Event> getEventById(Long id, Locale locale) {
+    public Optional<Event> getEventById(Long id) {
         doLongRunningTask();
         return Optional.ofNullable(eventRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("event.not.found.msg", null, locale) + " " + id)));
+                .orElseThrow(() -> new ResourceNotFoundException("Event not found with ID: " + id)));
     }
 
     @Cacheable(key = "'eventsByUser:' + #userId")
     public List<Event> getEventsByUser(Long userId) {
         doLongRunningTask();
-        User user = UserAuthenticationUtil.getUserByAuthentication();
+        // Fetch the user from the repository to ensure the ID is valid
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
         return eventRepository.findByUser(user);
     }
 
-    @Caching(evict = {@CacheEvict(cacheNames = "events", allEntries = true),
-            @CacheEvict(cacheNames = "eventCache", key = "'eventsByUser:' + #userId")})
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "events", allEntries = true),
+            @CacheEvict(cacheNames = "eventCache", key = "'eventsByUser:' + #user.id")
+    })
     @CachePut(value = "event", key = "#eventId")
-    public Event updateEvent(Long eventId, EventDTO eventDetails, User user, Long userId, Locale locale) throws ResourceNotFoundException {
+    public Event updateEvent(Long eventId, EventDTO eventDetails, User user) {
         doLongRunningTask();
         Event event = eventRepository.findByIdAndUser(eventId, user)
-                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("event.not.found.msg", null, locale) + " " + eventId));
+                .orElseThrow(() -> new ResourceNotFoundException("Event not found with ID: " + eventId));
+
         event.setName(eventDetails.getName());
         event.setCategory(eventDetails.getCategory());
         event.setDescription(eventDetails.getDescription());
@@ -82,22 +84,25 @@ public class EventService {
         return eventRepository.save(event);
     }
 
-    @Caching(evict = {@CacheEvict(cacheNames = "event", key = "#eventId"),
-            @CacheEvict(cacheNames = "eventCache", key = "'eventsByUser:' + #userId")})
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "event", key = "#eventId"),
+            @CacheEvict(cacheNames = "eventCache", key = "'eventsByUser:' + #user.id")
+    })
     @CacheEvict(cacheNames = "events", allEntries = true)
-    public void deleteEvent(Long eventId, User user, Long userId, Locale locale) {
+    public void deleteEvent(Long eventId, User user) {
         Event event = eventRepository.findByIdAndUser(eventId, user)
-                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("event.not.found.msg", null, locale) + eventId));
+                .orElseThrow(() -> new ResourceNotFoundException("Event not found or you do not have permission to delete it. ID: " + eventId));
+
         eventRepository.delete(event);
-        log.info("Deleted the event with id " + eventId);
+        log.info("Deleted the event with id {}", eventId);
     }
 
     private void doLongRunningTask() {
         try {
-            Thread.sleep(3000);
+            Thread.sleep(3000); // Simulating a slow database call
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            log.error("Long running task was interrupted", e);
+            Thread.currentThread().interrupt();
         }
     }
-
 }

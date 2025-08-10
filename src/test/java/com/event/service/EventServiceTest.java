@@ -17,7 +17,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Locale;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -26,8 +25,6 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
-//@RunWith(MockitoJUnitRunner.class)
-//@SpringBootTest
 @ExtendWith(MockitoExtension.class)
 public class EventServiceTest {
 
@@ -80,8 +77,9 @@ public class EventServiceTest {
 
         // Act
         Event createdEvent = eventService.createEvent(eventDTO, user, user.getId());
-        Optional<Event> optionalEvent = eventService.getEventById(createdEvent.getId(), new Locale("en"));
+        Optional<Event> optionalEvent = eventService.getEventById(createdEvent.getId());
         Event savedEvent = optionalEvent.orElse(new Event());
+
         // Assert
         assertEquals(createdEvent.getId(), savedEvent.getId());
     }
@@ -99,7 +97,7 @@ public class EventServiceTest {
         eventDTO.setEventStartDateAndTime(LocalDateTime.now());
         eventDTO.setEventEndDateAndTime(LocalDateTime.now());
 
-        assertThrows(UsernameNotFoundException.class, () -> userService.findById(132L, new Locale("en")));
+        assertThrows(UsernameNotFoundException.class, () -> userService.findById(132L));
     }
 
     @Test
@@ -108,20 +106,21 @@ public class EventServiceTest {
                 "csramesh@gmail.com", "1234567890", LocalDate.now(),
                 LocalDate.now(), "Sports, Music", Role.USER);
 
-        Event event = new Event(63L, "Sample Event1", "Conference", "This is a sample event.", "123 Event St, Event City",       // Location
+        Event event = new Event(63L, "Sample Event1", "Conference", "This is a sample event.", "123 Event St, Event City",
                 LocalDate.now(), LocalDate.now(), LocalDateTime.now(), LocalDateTime.now(), user);
 
         Optional<Event> optionalEvent = Optional.of(event);
         given(eventRepository.findById(event.getId())).willReturn(optionalEvent);
-        Optional<Event> expectedEventOptional = eventService.getEventById(event.getId(), new Locale("en"));
+        Optional<Event> expectedEventOptional = eventService.getEventById(event.getId());
         Event expectedEvent = expectedEventOptional.orElse(new Event());
+
         assertEquals(expectedEvent.getId(), event.getId());
         verify(eventRepository).findById(expectedEvent.getId());
     }
 
     @Test
-    public void eventNotFount() {
-        assertThrows(ResourceNotFoundException.class, () -> eventService.getEventById(1565L, new Locale("en")));
+    public void eventNotFound() {
+        assertThrows(ResourceNotFoundException.class, () -> eventService.getEventById(1565L));
     }
 
     @Test
@@ -130,7 +129,7 @@ public class EventServiceTest {
                 "john.doe@example.com", "1234567890", LocalDate.now(),
                 LocalDate.now(), "Sports, Music", Role.USER);
 
-        Event existingEvent = new Event(1L, "News Events", "News, advertisement", "This is new event.", "123 Event St, Event City",       // Location
+        Event existingEvent = new Event(1L, "News Events", "News, advertisement", "This is new event.", "123 Event St, Event City",
                 LocalDate.now(), LocalDate.now(), LocalDateTime.now(), LocalDateTime.now(), user);
 
         EventDTO eventDTO = EventDTO.mapToEventDTO(existingEvent);
@@ -142,16 +141,15 @@ public class EventServiceTest {
         when(eventRepository.save(any(Event.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Call the method under test
-        Event updatedEvent = eventService.updateEvent(existingEvent.getId(), eventDTO, user, user.getId(), new Locale("en"));
+        Event updatedEvent = eventService.updateEvent(existingEvent.getId(), eventDTO, user, user.getId());
 
         // Verify interactions
         verify(eventRepository, times(1)).findByIdAndUser(eventDTO.getId(), user);
         verify(eventRepository, times(1)).save(any(Event.class));
-        verify(messageSource, times(0)).getMessage(eq("event.not.found.msg"), any(), eq(new Locale("en")));
+        verify(messageSource, times(0)).getMessage(eq("event.not.found.msg"), any(), isNull());
 
         assertEquals(updatedEvent.getId(), existingEvent.getId());
     }
-
 
     @Test
     public void deleteEvent() {
@@ -159,14 +157,14 @@ public class EventServiceTest {
                 "crtharun1@gmail.com", "1234567890", LocalDate.of(2024, 5, 3),
                 LocalDate.of(2024, 5, 3), "Music, Sports", Role.USER);
 
-        Event event = new Event(14343L, "Sample Event1", "Conference", "This is a sample event.", "123 Event St, Event City",       // Location
+        Event event = new Event(14343L, "Sample Event1", "Conference", "This is a sample event.", "123 Event St, Event City",
                 LocalDate.now(), LocalDate.now(), LocalDateTime.now(), LocalDateTime.now(), user);
 
         // Mock the behavior of eventRepository.findByIdAndUser
         when(eventRepository.findByIdAndUser(event.getId(), user)).thenReturn(Optional.of(event));
 
         // Call the service method
-        eventService.deleteEvent(event.getId(), user, user.getId(), new Locale("en"));
+        eventService.deleteEvent(event.getId(), user, user.getId());
 
         // Verify that the delete method was called on the repository
         verify(eventRepository).delete(event);
@@ -182,12 +180,12 @@ public class EventServiceTest {
         when(eventRepository.findByIdAndUser(anyLong(), any(User.class))).thenReturn(Optional.empty());
 
         // Mock the behavior of messageSource
-        when(messageSource.getMessage(eq("event.not.found.msg"), any(), eq(new Locale("en"))))
+        when(messageSource.getMessage(eq("event.not.found.msg"), any(), isNull()))
                 .thenReturn("Event not found with ID ");
 
         // Call the service method and assert that a ResourceNotFoundException is thrown
         assertThrows(ResourceNotFoundException.class, () ->
-                eventService.deleteEvent(1L, user, user.getId(), new Locale("en")));
+                eventService.deleteEvent(1L, user, user.getId()));
 
         // Verify that the delete method was not called on the repository
         verify(eventRepository, never()).delete(any(Event.class));
