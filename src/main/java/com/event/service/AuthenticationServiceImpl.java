@@ -7,23 +7,19 @@ import com.event.entity.Role;
 import com.event.entity.User;
 import com.event.exception.ResourceNotFoundException;
 import com.event.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
-import org.springframework.context.MessageSource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Locale;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class AuthenticationServiceImpl implements AuthenticationService {
 
@@ -39,38 +35,40 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Autowired
     private AuthenticationManager authenticationManager;
 
-    @Autowired
-    private MessageSource messageSource;
-
     @Caching(evict = {@CacheEvict(cacheNames = "users", allEntries = true)})
     @Override
-    public String registration(UserDTO request, Locale locale) throws BadRequestException {
+    public String registration(UserDTO request) throws BadRequestException {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new BadRequestException(messageSource.getMessage("user.email.exist.msg", null, locale) + " " + request.getEmail() + messageSource.getMessage("user.change.email.msg", null, locale));
+            throw new BadRequestException("Email '" + request.getEmail() + "' already exists. Please use a different email.");
         }
-        var user = User.builder().name(request.getName()).email(request.getEmail()).password(passwordEncoder.encode(request.getPassword()))
-                .gender(request.getGender()).address(request.getAddress()).mobile(request.getMobile())
-                .eventsOfInterest(request.getEventsOfInterest()).role(Role.USER).build();
+
+        var user = User.builder()
+                .name(request.getName())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .gender(request.getGender())
+                .address(request.getAddress())
+                .mobile(request.getMobile())
+                .eventsOfInterest(request.getEventsOfInterest())
+                .role(Role.USER)
+                .build();
 
         Optional.ofNullable(userRepository.save(user))
-                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("user.registration.unsuccessful.msg", null, locale)));
-        return messageSource.getMessage("user.registration.successful.msg", null, locale);
+                .orElseThrow(() -> new ResourceNotFoundException("User registration was unsuccessful. Please try again."));
+
+        return "User registration was successful.";
     }
 
     @Override
-    public JwtAuthenticationResponse login(SigninRequest request, Locale locale) {
+    public JwtAuthenticationResponse login(SigninRequest request) {
         // Authenticate using Spring Security (email & password)
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(), request.getPassword()
-                )
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
 
         // Fetch user from DB
         var user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        messageSource.getMessage("user.invalid.email.msg", null, locale))
-                );
+                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password."));
 
         // Generate JWT token
         var jwt = jwtService.generateToken(user);
@@ -78,5 +76,4 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         // Return response with token
         return JwtAuthenticationResponse.builder().token(jwt).build();
     }
-
 }
