@@ -6,7 +6,6 @@ import com.event.entity.User;
 import com.event.exception.ResourceNotFoundException;
 import com.event.repository.UserRepository;
 import com.event.util.UserAuthenticationUtil;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,28 +13,24 @@ import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
-import org.springframework.context.MessageSource;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 @CacheConfig(cacheNames = "userCache")
 @Slf4j
 public class UserServiceImpl {
+
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private MessageSource messageSource;
 
     @Cacheable("users")
     public List<User> getAllUser() {
@@ -44,56 +39,70 @@ public class UserServiceImpl {
     }
 
     @Cacheable(cacheNames = "user", key = "#userId", unless = "#result == null")
-    public Optional<User> findById(Long userId, Locale locale) {
+    public Optional<User> findById(Long userId) {
         doLongRunningTask();
         return Optional.ofNullable(userRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException(messageSource.getMessage("user.not.found.msg", null, locale) + " " + userId)));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with ID: " + userId)));
     }
 
     @Caching(evict = {@CacheEvict(cacheNames = "users", allEntries = true),
             @CacheEvict(cacheNames = "user", key = "#userId")})
-    public String updateUser(Long userId, UserDTO userRequest, Locale locale) throws ResourceNotFoundException, BadRequestException {
+    public String updateUser(Long userId, UserDTO userRequest) throws ResourceNotFoundException, BadRequestException {
         doLongRunningTask();
-        User AuthenticateUser = UserAuthenticationUtil.getUserByAuthentication();
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("user.not.found.msg", null, locale) + " " + userId));
-        if (AuthenticateUser.getId() != userId) {
-            throw new UsernameNotFoundException(messageSource.getMessage("user.not.access.err.msg", null, locale));
+        User authenticatedUser = UserAuthenticationUtil.getUserByAuthentication();
+        User userToUpdate = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
+
+        // Security Check: Ensure the authenticated user is the one being updated
+        if (!authenticatedUser.getId().equals(userToUpdate.getId())) {
+            throw new AccessDeniedException("You do not have permission to update this user's profile.");
         }
 
-        if (user.getEmail().equals(userRequest.getEmail()) || (!user.getEmail().equals(userRequest.getEmail()) && !userRepository.existsByEmail(userRequest.getEmail()))) {
-            // update user
-            var updatedUser = User.builder().id(userId).name(userRequest.getName()).email(userRequest.getEmail()).password(passwordEncoder.encode(userRequest.getPassword()))
-                    .gender(userRequest.getGender()).address(userRequest.getAddress()).mobile(userRequest.getMobile())
-                    .eventsOfInterest(userRequest.getEventsOfInterest()).role(Role.USER).build();
-
-            Optional.ofNullable(userRepository.save(updatedUser))
-                    .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("user.registration.unsuccessful.msg", null, locale)));
-            return messageSource.getMessage("user.profile.update.msg", null, locale);
-        } else {
-            throw new BadRequestException(messageSource.getMessage("user.email.exist.msg", null, locale) + userRequest.getEmail() + messageSource.getMessage("user.change.email.msg", null, locale));
+        // Check if the new email is already taken by another user
+        if (userRepository.existsByEmail(userRequest.getEmail()) && !userToUpdate.getEmail().equals(userRequest.getEmail())) {
+            throw new BadRequestException("Email '" + userRequest.getEmail() + "' is already in use. Please use a different email.");
         }
+
+        // Update user fields from the request
+        userToUpdate.setName(userRequest.getName());
+        userToUpdate.setEmail(userRequest.getEmail());
+        userToUpdate.setGender(userRequest.getGender());
+        userToUpdate.setAddress(userRequest.getAddress());
+        userToUpdate.setMobile(userRequest.getMobile());
+        userToUpdate.setEventsOfInterest(userRequest.getEventsOfInterest());
+
+        // Only update password if a new one is provided
+        if (userRequest.getPassword() != null && !userRequest.getPassword().isEmpty()) {
+            userToUpdate.setPassword(passwordEncoder.encode(userRequest.getPassword()));
+        }
+
+        userRepository.save(userToUpdate);
+        return "User profile updated successfully.";
     }
 
     @Caching(evict = {@CacheEvict(cacheNames = "user", key = "#userId"),
             @CacheEvict(cacheNames = "users", allEntries = true)})
-    public void deleteUser(Long userId, Locale locale) {
+    public void deleteUser(Long userId) {
         doLongRunningTask();
-        User AuthenticateUser = UserAuthenticationUtil.getUserByAuthentication();
-        if (AuthenticateUser.getId() != userId) {
-            throw new UsernameNotFoundException(messageSource.getMessage("user.not.access.delete.user.msg", null, locale));
+        User authenticatedUser = UserAuthenticationUtil.getUserByAuthentication();
+        User userToDelete = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
+
+        // Security Check: Ensure the authenticated user is the one being deleted
+        if (!authenticatedUser.getId().equals(userToDelete.getId())) {
+            throw new AccessDeniedException("You do not have permission to delete this user.");
         }
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("user.not.found.msg", null, locale) + " " + userId));
-        userRepository.delete(user);
-        log.info("Deleted the user with Id: " + user.getId());
+
+        userRepository.delete(userToDelete);
+        log.info("Deleted the user with Id: {}", userId);
     }
 
     private void doLongRunningTask() {
         try {
-            Thread.sleep(3000);
+            Thread.sleep(3000); // Simulating a slow task
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            log.error("Long running task was interrupted", e);
+            Thread.currentThread().interrupt();
         }
     }
 }
