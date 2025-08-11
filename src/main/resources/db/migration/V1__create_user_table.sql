@@ -13,6 +13,6 @@ CREATE TABLE users (
 
 INSERT INTO users (name, password, gender, address, email, mobile, creation_date, updated_date, events_of_interest, role)
 VALUES
-('Ashish Paghdar -1', '$2a$10$wQAvKT.23CMK9qMqJWEaxuWAO2WuHboZaS8okIbMw9c58oAnTtNFe', 'Male', '123 Main St, City', 'ashish1@example.com', '1234567890', '2024-05-03', '2024-05-03', 'Music, Sports', 'USER'),
-('Ashish Paghdar -2', '$2a$10$ZtFqAL6kM.qeflA7YHA.POx2bMZ7lNpQdl9KzmyRL.ClQD74G8EbS', 'Male', '456 Elm St, Town', 'ashish2@example.com', '9876543210', '2024-05-03', '2024-05-03', 'Movies, Travel', 'USER'),
-('Ashish Paghdar -3', '$2a$10$3io8kQRNSQDdgbbIU0BWj.iufPXXEgms22gXmNaOI5C3IP3IJ7OVO', 'Male', '789 Oak St, Village', 'ashish3@example.com', '5555555555', '2024-05-03', '2024-05-03', 'Books, Cooking', 'USER');
+('Tony Stark', '$2a$10$wQAvKT.23CMK9qMqJWEaxuWAO2WuHboZaS8okIbMw9c58oAnTtNFe', 'Male', '10880 Malibu Point, Malibu', 'tony.stark@example.com', '1112223333', '2024-05-03', '2024-05-03', 'Technology, Engineering', 'USER'),
+('Ellen Ripley', '$2a$10$ZtFqAL6kM.qeflA7YHA.POx2bMZ7lNpQdl9KzmyRL.ClQD74G8EbS', 'Female', 'LV-426 Colony', 'ellen.ripley@example.com', '4445556666', '2024-05-03', '2024-05-03', 'Science Fiction, Survival', 'USER'),
+('Indiana Jones', '$2a$10$3io8kQRNSQDdgbbIU0BWj.iufPXXEgms22gXmNaOI5C3IP3IJ7OVO', 'Male', 'Temple of Doom, India', 'indiana.jones@example.com', '7778889999', '2024-05-03', '2024-05-03', 'Adventure, History', 'USER');
