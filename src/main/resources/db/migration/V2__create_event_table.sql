@@ -14,13 +14,13 @@ CREATE TABLE event (
 
 INSERT INTO event (name, category, description, location, creation_date, updated_date, event_start_date_and_time, event_end_date_and_time, user_id)
 VALUES
-('Event 1', 'Category 1', 'Description 1', 'Location 1', '2024-05-03', '2024-05-03', '2024-05-03T12:00:00', '2024-05-03T14:00:00', 1),
-('Event 2', 'Category 2', 'Description 2', 'Location 2', '2024-05-03', '2024-05-03', '2024-05-03T13:00:00', '2024-05-03T15:00:00', 1),
-('Event 3', 'Category 3', 'Description 3', 'Location 3', '2024-05-03', '2024-05-03', '2024-05-03T14:00:00', '2024-05-03T16:00:00', 1),
-('Event 4', 'Category 1', 'Description 1', 'Location 1', '2024-05-03', '2024-05-03', '2024-05-03T12:00:00', '2024-05-03T14:00:00', 1),
-('Event 5', 'Category 2', 'Description 2', 'Location 2', '2024-05-03', '2024-05-03', '2024-05-03T13:00:00', '2024-05-03T15:00:00', 1),
-('Event 6', 'Category 3', 'Description 3', 'Location 3', '2024-05-03', '2024-05-03', '2024-05-03T14:00:00', '2024-05-03T16:00:00', 2),
-('Event 7', 'Category 1', 'Description 1', 'Location 1', '2024-05-03', '2024-05-03', '2024-05-03T12:00:00', '2024-05-03T14:00:00', 2),
-('Event 8', 'Category 2', 'Description 2', 'Location 2', '2024-05-03', '2024-05-03', '2024-05-03T13:00:00', '2024-05-03T15:00:00', 2),
-('Event 9', 'Category 3', 'Description 3', 'Location 3', '2024-05-03', '2024-05-03', '2024-05-03T14:00:00', '2024-05-03T16:00:00', 2),
-('Event 10', 'Category 3', 'Description 3', 'Location 3', '2024-05-03', '2024-05-03', '2024-05-03T14:00:00', '2024-05-03T16:00:00', 2);
+('Mumbai Music Concert', 'Concert', 'Live performances by top Indian and international artists.', 'Wankhede Stadium, Mumbai', '2024-05-03', '2024-05-03', '2024-05-03 18:00:00', '2024-05-03 23:00:00', 1),
+('Stand-up Comedy Night', 'Comedy Show', 'An evening full of laughter with popular comedians.', 'NCPA Auditorium, Mumbai', '2024-05-03', '2024-05-03', '2024-05-04 19:00:00', '2024-05-04 22:00:00', 1),
+('Annual Business Summit', 'Summit', 'Leaders from various industries discuss market trends.', 'Taj Mahal Palace, Mumbai', '2024-05-03', '2024-05-03', '2024-05-05 09:00:00', '2024-05-05 17:00:00', 1),
+('Chennai Arts Festival', 'Festival', 'Celebrating traditional and contemporary arts.', 'Music Academy, Chennai', '2024-05-03', '2024-05-03', '2024-05-06 10:00:00', '2024-05-06 20:00:00', 1),
+('Bangalore Tech Conference', 'Technology', 'Showcasing latest innovations and startups.', 'Bangalore International Exhibition Centre', '2024-05-03', '2024-05-03', '2024-05-07 09:00:00', '2024-05-07 17:00:00', 2),
+('Kolkata Food Expo', 'Exhibition', 'A gastronomic journey featuring diverse cuisines.', 'Pragati Maidan, Kolkata', '2024-05-03', '2024-05-03', '2024-05-08 11:00:00', '2024-05-08 20:00:00', 2),
+('Pune Startup Meetup', 'Meetup', 'Networking event for local entrepreneurs and investors.', 'Hyatt Regency, Pune', '2024-05-03', '2024-05-03', '2024-05-09 16:00:00', '2024-05-09 20:00:00', 2),
+('Delhi Literature Festival', 'Festival', 'Celebrating Indian and global literary talents.', 'India Habitat Centre, New Delhi', '2024-05-03', '2024-05-03', '2024-05-10 10:00:00', '2024-05-10 18:00:00', 2),
+('Hyderabad Film Awards', 'Awards Ceremony', 'Honoring the best in Indian cinema.', 'Novotel Hyderabad Convention Centre', '2024-05-03', '2024-05-03', '2024-05-11 19:00:00', '2024-05-11 23:00:00', 2),
+('Goa Beach Festival', 'Festival', 'Music, dance, and food festival by the sea.', 'Baga Beach, Goa', '2024-05-03', '2024-05-03', '2024-05-12 15:00:00', '2024-05-12 22:00:00', 2);
