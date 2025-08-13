@@ -57,7 +57,7 @@ public class EventController {
         log.info("Fetching only my events");
         List<Event> userEvents = eventService.getEventsByUser(user.getId());
         log.info("Fetched user {} events", userEvents.size());
-//       List<EventDTO> eventDTO =  userEvents.stream().map(EventDTO::mapToEventDTO).collect(Collectors.toList());
+//        List<EventDTO> eventDTO =  userEvents.stream().map(EventDTO::mapToEventDTO).collect(Collectors.toList());
         return new ResponseEntity<>(userEvents, HttpStatus.OK);
     }
 
@@ -120,4 +120,14 @@ public class EventController {
                     .body("Event not found or you do not have permission to delete it. ID: " + eventId);
         }
     }
+
+    @GetMapping("/search/location")
+    public ResponseEntity<List<EventDTO>> searchByLocation(@RequestParam String location) {
+        List<EventDTO> eventDTOs = eventService.searchByLocation(location)
+                .stream()
+                .map(EventDTO::mapToEventDTO)
+                .toList();
+        return ResponseEntity.ok(eventDTOs);
+    }
+
 }

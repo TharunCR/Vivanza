@@ -105,4 +105,8 @@ public class EventService {
             Thread.currentThread().interrupt();
         }
     }
+
+    public List<Event> searchByLocation(String location) {
+        return eventRepository.findByLocationContainingIgnoreCase(location);
+    }
 }
