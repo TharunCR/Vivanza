@@ -19,9 +19,12 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
 
 @ExtendWith(MockitoExtension.class)
 public class EventServiceTest {
@@ -48,18 +51,31 @@ public class EventServiceTest {
     }
 
     @Test
+
     public void createEvent_ShouldReturnSavedEvent() {
-        // Arrange
+
+// Arrange
+
         EventDTO eventDTO = EventDTO.mapToEventDTO(event);
+
         when(eventRepository.save(any(Event.class))).thenReturn(event);
 
-        // Act
+
+
+// Act
+
         Event createdEvent = eventService.createEvent(eventDTO, user);
 
-        // Assert
+
+
+// Assert
+
         assertNotNull(createdEvent);
+
         assertEquals(event.getName(), createdEvent.getName());
+
         verify(eventRepository, times(1)).save(any(Event.class));
+
     }
 
     @Test
