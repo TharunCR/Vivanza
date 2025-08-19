@@ -88,7 +88,7 @@ public class UserServiceImpl {
         User userToDelete = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
 
-        // Security Check: Ensure the authenticated user is the one being deleted
+        //  Security Check: Ensure the authenticated user is the one being deleted
         if (!authenticatedUser.getId().equals(userToDelete.getId())) {
             throw new AccessDeniedException("You do not have permission to delete this user.");
         }
