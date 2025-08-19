@@ -38,7 +38,7 @@ public class AuthenticationController {
     public ResponseEntity<Object> login(@Valid @RequestBody SigninRequest request) {
         log.info("Processing login for: {}", request.getEmail());
         try {
-            //  CORRECTED: The locale parameter is removed from the service call
+            // CORRECTED: The locale parameter is removed from the service call
             return ResponseEntity.ok(authenticationService.login(request));
         } catch (Exception e) {
             log.error("Error processing login for {}: {}", request.getEmail(), e.getMessage());
