@@ -5,7 +5,7 @@ import javax.validation.ConstraintValidatorContext;
 import java.util.regex.Pattern;
 
 
-// Currently we are not using custom validation functionality.
+//  Currently we are not using custom validation functionality.
 public class MobileNumberValidator implements ConstraintValidator<MobileNumber, String> {
     private static final Pattern MOBILE_NUMBER_PATTERN = Pattern.compile("^\\d{10}$");
 
