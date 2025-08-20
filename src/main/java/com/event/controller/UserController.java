@@ -68,7 +68,7 @@ public class UserController {
     public ResponseEntity<String> deleteUser(@PathVariable("id") Long userId) {
         log.info("Deleting user with ID {}", userId);
         try {
-            // Assuming the service method is updated to not require locale.
+             // Assuming the service method is updated to not require locale.
             userService.deleteUser(userId);
             log.info("Deleted user with ID {}", userId);
             return ResponseEntity.status(HttpStatus.OK).body("User deleted successfully with ID: " + userId);
