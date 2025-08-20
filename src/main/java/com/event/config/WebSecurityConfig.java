@@ -39,7 +39,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(request -> request.requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
 
-                        // Permit all swagger URLs
+                         // Permit all swagger URLs
                         .requestMatchers(SWSTRING_STRINGS).permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS))
