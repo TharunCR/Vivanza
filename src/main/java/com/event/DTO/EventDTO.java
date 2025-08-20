@@ -55,7 +55,7 @@ public class EventDTO {
     private LocalDate updatedDate;
 
     @NotNull
-//    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+//   @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
