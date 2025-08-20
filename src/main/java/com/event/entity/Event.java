@@ -59,7 +59,7 @@ public class Event {
     @Column(nullable = false, name = "eventStartDateAndTime")
     private LocalDateTime eventStartDateAndTime;
 
-    //   @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    //  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
