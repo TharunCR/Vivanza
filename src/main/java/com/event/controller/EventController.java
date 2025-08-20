@@ -57,7 +57,7 @@ public class EventController {
         log.info("Fetching only my events");
         List<Event> userEvents = eventService.getEventsByUser(user.getId());
         log.info("Fetched user {} events", userEvents.size());
-//      List<EventDTO> eventDTO =  userEvents.stream().map(EventDTO::mapToEventDTO).collect(Collectors.toList());
+    //  List<EventDTO> eventDTO =  userEvents.stream().map(EventDTO::mapToEventDTO).collect(Collectors.toList());
         return new ResponseEntity<>(userEvents, HttpStatus.OK);
     }
 
