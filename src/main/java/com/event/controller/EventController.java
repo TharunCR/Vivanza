@@ -40,16 +40,7 @@ public class EventController {
         return new ResponseEntity<>(events, HttpStatus.OK);
     }
 
-    //Pagination not working with Redis
-  /* @GetMapping
-    public ResponseEntity<Page<EventDTO>> getAllEvents(@RequestParam(defaultValue = "0")int page, @RequestParam(defaultValue = "10")int size) {
-        log.info("Fetching all entities");
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Event> events = eventService.getAllEvents(pageable);
-        log.info("Fetched {} events", events.getSize());
-        Page<EventDTO> eventDTO =  events.map(EventDTO::mapToEventDTO);
-        return new ResponseEntity<>(eventDTO, HttpStatus.OK);
-    }*/
+
 
     @GetMapping("/user-events")
     public ResponseEntity<List<Event>> getUserEvents() {
