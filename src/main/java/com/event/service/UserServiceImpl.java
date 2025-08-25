@@ -71,7 +71,7 @@ public class UserServiceImpl {
         userToUpdate.setMobile(userRequest.getMobile());
         userToUpdate.setEventsOfInterest(userRequest.getEventsOfInterest());
 
-        // Only update password if a new one is provided
+        //  Only update password if a new one is provided
         if (userRequest.getPassword() != null && !userRequest.getPassword().isEmpty()) {
             userToUpdate.setPassword(passwordEncoder.encode(userRequest.getPassword()));
         }

@@ -58,7 +58,7 @@ public class EventService {
     @Cacheable(key = "'eventsByUser:' + #userId")
     public List<Event> getEventsByUser(Long userId) {
         doLongRunningTask();
-        // Fetch the user from the repository to ensure the ID is valid
+        //  Fetch the user from the repository to ensure the ID is valid
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
         return eventRepository.findByUser(user);
