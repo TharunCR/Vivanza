@@ -50,7 +50,7 @@ public class UserController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(@PathVariable("id") Long userId, @Valid @RequestBody UserDTO userDetails) {
         try {
-            // Assuming the service method is updated to not require locale
+            //  Assuming the service method is updated to not require locale
             String updatedUser = userService.updateUser(userId, userDetails);
             log.info("Updated user with ID {}", userId);
             return new ResponseEntity<>(updatedUser, HttpStatus.OK);
